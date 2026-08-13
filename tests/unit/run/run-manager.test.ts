@@ -106,6 +106,27 @@ describe('run manager', () => {
         return context;
     }
 
+    it('injects built-in variables into the run', async () => {
+        const manager = setup();
+        await manager.Install(
+            'builtins',
+            '[Start]\n' +
+                '-> [Script(`node -e "console.log(process.argv[1])" ${Run_Id}`)]\n' +
+                '-> [Script(`node -e "console.log(process.argv[1])" ${Task_Id}`)]\n' +
+                '-> [Script(`node -e "console.log(process.argv[1])" ${Trigger_Type}`)]\n' +
+                '-> [Script(`node -e "console.log(process.cwd() === process.argv[1])" ${Workspace_Dir}`)]\n' +
+                '[End]\n',
+        );
+        const record = manager.Runs.Start('builtins', { Trigger: ERunTrigger.Manual });
+        const finished = await manager.Runs.WhenFinished(record.RunId);
+        expect(finished.Status).toBe(ERunStatus.Success);
+        const stdout = readFileSync(findRunFile(manager.Root, record.RunId, 'stdout.log'), 'utf8');
+        expect(stdout).toContain(record.RunId);
+        expect(stdout).toContain('builtins');
+        expect(stdout).toContain(ERunTrigger.Manual);
+        expect(stdout).toContain('true');
+    });
+
     it('creates queued runs and executes them to success', async () => {
         const manager = setup();
         await manager.Install('daily-report', SCRIPT_SOURCE);

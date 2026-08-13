@@ -48,7 +48,7 @@ ATS（Automatic-Task Script）是 Automatic-Task 的任务脚本语言，描述�
 @var 名称: 类型 [!] [= 默认值] [# 说明]
 ```
 
-- **名称**：`[a-zA-Z_][a-zA-Z0-9_]*`，不能与关键字重名（`Start`、`End`、`Select`、`Success`、`Failure`、`Default`、`Case`）
+- **名称**：`[a-zA-Z_][a-zA-Z0-9_]*`，不能与关键字重名（`Start`、`End`、`Select`、`Success`、`Failure`、`Default`、`Case`），也不能与[内置变量](#内置变量)重名
 - **`!`**：标记为必填。必填变量没有默认值且用户未配置时，运行前校验会报错
 - **`= 默认值`**：安装后无需配置即可运行
 - **行尾 `#` 注释**：该参数的说明，TUI 配置界面直接展示；不写则自动展示类型与默认值
@@ -74,6 +74,38 @@ ATS（Automatic-Task Script）是 Automatic-Task 的任务脚本语言，描述�
 @var retries: number = 3
 @var quiet: boolean = false
 @var workdir: path = "./output"
+```
+
+### 内置变量
+
+以下变量由运行时自动提供，**不需要也不允许**用 `@var` 声明（重名会在校验阶段报错），在模板里直接引用即可。它们的值在一次运行内恒定不变。
+
+| 变量               | 类型     | 含义                                                                      |
+| ------------------ | -------- | ------------------------------------------------------------------------- |
+| `${Workspace_Dir}` | `path`   | 本次运行的工作区目录。也是所有步骤子进程的工作目录（cwd）                 |
+| `${Package_Dir}`   | `path`   | 任务包的解压目录。读取包内自带的文件（脚本、模板、配置）时用它            |
+| `${Run_Id}`        | `string` | 本次运行的 ID                                                             |
+| `${Task_Id}`       | `string` | 任务 ID                                                                   |
+| `${Trigger_Type}`  | `string` | 触发方式：`manual`（手动）或 `schedule`（定时）                           |
+
+`Workspace_Dir` 和 `Package_Dir` 是两个不同的目录：步骤跑在工作区里，产出物写在工作区；任务包自带的文件在包目录里，只读。
+
+```text
+[Start]
+
+# 让 agent 明确把产物写到工作区，而不是它自己猜的某个路径
+-> [Agent(`读取 ${Package_Dir}/prompts/daily.md，生成日报写入 ${Workspace_Dir}/report.md`)]
+
+# 定时触发时才推送
+-> [Select]
+
+    -> [Case(${Trigger_Type} == "schedule")]
+        -> [Script(`bash notify.sh ${Run_Id}`)]
+
+    -> [Default]
+        -> [Script(`echo 手动运行，跳过推送`)]
+
+[End]
 ```
 
 ## 步骤
@@ -343,4 +375,17 @@ Agent 命令在全局设置中配置：
 
 ### 状态传递
 
-每一步的执行结果（成功/失败/超时/取消）会传给下一个节点的 `[Select]`，这就是 `[Success]` 和 `[Failure]` 判断的依据。上一步的输出和退出码同样可在运行时访问。
+每一步的执行结果（成功/失败/超时/取消）会传给下一个节点的 `[Select]`，这就是 `[Success]` 和 `[Failure]` 判断的依据。
+
+上一步的**输出内容和退出码不会**暴露成变量，脚本里读不到。需要在步骤之间传递数据时，写文件到工作区：
+
+```text
+[Start]
+
+-> [Script(`bash fetch.sh > ${Workspace_Dir}/data.json`)]
+-> [Script(`bash render.sh ${Workspace_Dir}/data.json`)]
+
+[End]
+```
+
+所有步骤的 cwd 都是同一个工作区，所以相对路径也可以（`> data.json`）；写成 `${Workspace_Dir}/data.json` 只是更明确，尤其是传给 agent 的提示词里。

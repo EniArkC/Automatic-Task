@@ -1,4 +1,4 @@
-import { parseAts, validateTaskAst } from '@at/ats';
+import { builtinVariableNames, parseAts, validateTaskAst } from '@at/ats';
 import { describe, expect, it } from 'vitest';
 
 function issues(
@@ -185,5 +185,22 @@ describe('validator', () => {
         const source = '@var depth: select("简版", "详细") = "简版"\n' + BASE;
         expect(valid(source, { depth: '其他' })).toBe(false);
         expect(valid(source, { depth: '详细' })).toBe(true);
+    });
+
+    it('accepts built-in variables without declaration', () => {
+        for (const name of builtinVariableNames()) {
+            expect(valid(`[Start]\n-> [Script(\`echo \${${name}}\`)]\n[End]\n`)).toBe(true);
+        }
+    });
+
+    it('rejects declaring a built-in variable', () => {
+        const found = issues('@var Workspace_Dir: path\n' + BASE);
+        expect(found).toHaveLength(1);
+        expect(found[0]?.Message).toMatch(/built-in variable/);
+    });
+
+    it('rejects a built-in path variable used as timeout', () => {
+        const source = '[Start]\n-> [Script(`echo hi`, timeout: ${Workspace_Dir})]\n[End]\n';
+        expect(issues(source)).toHaveLength(1);
     });
 });

@@ -4,6 +4,7 @@ import { Parser } from './parser';
 import { type TValidationIssue, validateTaskAst } from './validator';
 
 export * from './ast';
+export * from './builtins';
 export * from './lexer';
 export * from './parser';
 export * from './runtime';

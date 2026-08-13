@@ -11,6 +11,7 @@ import type {
     TVariableDeclaration,
 } from './ast';
 import { EComparisonOperator } from './ast';
+import { builtinVariableType, isBuiltinVariable } from './builtins';
 
 export type TValidationIssue = {
     Line: number;
@@ -36,6 +37,14 @@ export class Validator {
 
     private ValidateVariables(variables: TVariableDeclaration[]): void {
         for (const declaration of variables) {
+            if (isBuiltinVariable(declaration.Name)) {
+                this.Report(
+                    declaration,
+                    `"${declaration.Name}" is a built-in variable and cannot be declared`,
+                    'It is provided automatically at run time; rename this variable',
+                );
+                continue;
+            }
             if (this.Variables.has(declaration.Name)) {
                 this.Report(
                     declaration,
@@ -197,7 +206,7 @@ export class Validator {
             return;
         }
         const root = variables[0]?.Name.split('.')[0];
-        const type = root === undefined ? undefined : this.Variables.get(root)?.Type;
+        const type = this.VariableType(root);
         if (type !== undefined && type !== 'number') {
             this.Report(node, `Variable "${root}" is ${type}; timeout needs a number`);
         }
@@ -271,7 +280,7 @@ export class Validator {
         }
         const variable = node.Template.Segments.find((segment) => segment.Kind === 'variable');
         const root = variable?.Name.split('.')[0];
-        const type = root === undefined ? undefined : this.Variables.get(root)?.Type;
+        const type = this.VariableType(root);
         if (type !== undefined && type !== 'number') {
             this.Report(node, `Variable "${root}" is ${type}; order comparisons need a number`);
         }
@@ -300,11 +309,19 @@ export class Validator {
         for (const segment of value.Segments) {
             if (segment.Kind === 'variable') {
                 const root = segment.Name.split('.')[0] ?? segment.Name;
-                if (!this.Variables.has(root)) {
+                if (!this.Variables.has(root) && !isBuiltinVariable(root)) {
                     this.Report(value, `Unknown variable \${${segment.Name}}`, `Declare it with @var ${root}: ...`);
                 }
             }
         }
+    }
+
+    // 内置变量不出现在 @var 声明里，类型要单独查。
+    private VariableType(root: string | undefined): TVariableDeclaration['Type'] | undefined {
+        if (root === undefined) {
+            return undefined;
+        }
+        return this.Variables.get(root)?.Type ?? builtinVariableType(root);
     }
 
     private Report(node: { Line: number; Column: number }, message: string, suggestion?: string): void {

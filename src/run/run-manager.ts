@@ -101,6 +101,18 @@ function resolveVariables(
     return resolved;
 }
 
+// 内置变量在运行开始时注入，覆盖同名用户值（校验层已禁止 @var 声明这些名字）。
+function withBuiltins(
+    variables: ReadonlyMap<string, TVariableValue>,
+    builtins: readonly (readonly [string, TVariableValue])[],
+): ReadonlyMap<string, TVariableValue> {
+    const merged = new Map(variables);
+    for (const [name, value] of builtins) {
+        merged.set(name, value);
+    }
+    return merged;
+}
+
 function statusToRunStatus(status: EStepStatus): ERunStatus {
     switch (status) {
         case EStepStatus.Success:
@@ -498,10 +510,18 @@ export class RunManager implements IRunManager {
         this.Logger.Info('Task started', { taskId: config.taskId, runId });
 
         const packageInfo = this.PackageManager.GetPackage(config.taskId, config.packageVersion);
+        const workspace = this.PathService.GetRunWorkspacePath(runId);
+        const packagePath = packageInfo?.Path ?? '';
         const context = {
-            Variables: variables,
-            Workspace: this.PathService.GetRunWorkspacePath(runId),
-            PackagePath: packageInfo?.Path ?? '',
+            Variables: withBuiltins(variables, [
+                ['Workspace_Dir', workspace],
+                ['Package_Dir', packagePath],
+                ['Run_Id', runId],
+                ['Task_Id', config.taskId],
+                ['Trigger_Type', record.Trigger],
+            ]),
+            Workspace: workspace,
+            PackagePath: packagePath,
             AbortSignal: controller.signal,
             RunId: runId,
         };
