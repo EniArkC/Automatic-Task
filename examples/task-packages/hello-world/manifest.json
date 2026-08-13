@@ -1,0 +1,8 @@
+{
+    "spec": "atp/v1",
+    "id": "hello-world",
+    "name": "Hello World",
+    "version": "1.0.0",
+    "description": "最简单的示例：向世界问好",
+    "author": "Automatic-Task Examples"
+}

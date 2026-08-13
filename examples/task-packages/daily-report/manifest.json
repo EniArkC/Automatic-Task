@@ -1,0 +1,8 @@
+{
+    "spec": "atp/v1",
+    "id": "daily-report",
+    "name": "Daily Report",
+    "version": "1.0.0",
+    "description": "抓取数据、Agent 生成日报，按深度分支",
+    "author": "Automatic-Task Examples"
+}

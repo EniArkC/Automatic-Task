@@ -1,0 +1,8 @@
+{
+    "spec": "atp/v1",
+    "id": "agent-test",
+    "name": "Agent 对话测试",
+    "version": "1.0.0",
+    "description": "定时调用 Agent 发送消息并获取回复，用于测试 Agent 连通性",
+    "author": "Automatic-Task Examples"
+}

@@ -1,0 +1,8 @@
+# 最简单的任务：变量 + 单个 Script 步骤
+@var greeting: string = "你好"
+
+[Start]
+
+-> [Script(`node -e "console.log(process.argv[1] + ', Automatic-Task!')" ${greeting}`)]
+
+[End]

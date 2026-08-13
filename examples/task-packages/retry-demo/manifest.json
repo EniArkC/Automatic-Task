@@ -1,0 +1,8 @@
+{
+  "spec": "atp/v1",
+  "id": "retry-demo",
+  "name": "Retry Demo",
+  "version": "1.0.0",
+  "description": "超时终止与 Failure 恢复分支：number/boolean 变量、timeout、比较运算",
+  "author": "Automatic-Task Examples"
+}

@@ -1,0 +1,22 @@
+﻿{
+    "extends": "./tsconfig.base.json",
+    "compilerOptions": {
+        "baseUrl": ".",
+        "paths": {
+            "@at/core": ["src/core/index.ts"],
+            "@at/ats": ["src/ats/index.ts"],
+            "@at/paths": ["src/paths/index.ts"],
+            "@at/logging": ["src/logging/index.ts"],
+            "@at/config": ["src/config/index.ts"],
+            "@at/package-manager": ["src/package-manager/index.ts"],
+            "@at/process": ["src/process/index.ts"],
+            "@at/run": ["src/run/index.ts"],
+            "@at/executor": ["src/executor/index.ts"],
+            "@at/scheduler": ["src/scheduler/index.ts"],
+            "@at/ipc": ["src/ipc/index.ts"],
+            "@at/runtime": ["src/runtime/index.ts"],
+            "@at/tui": ["src/tui/index.ts"]
+        }
+    },
+    "include": ["src/**/*.ts", "src/**/*.tsx", "tests/**/*.ts", "examples/**/*.ts", "vitest.config.ts"]
+}

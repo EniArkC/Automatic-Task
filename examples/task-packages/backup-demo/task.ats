@@ -1,0 +1,12 @@
+# 备份任务：包内 .bat 脚本向 Run workspace 写入标记文件
+# 覆盖：path 变量、包内 .bat 脚本（参数传递）、workspace 持久化输出
+@var backupDir: path = "backup"
+@var slow: boolean = false
+
+[Start]
+
+-> [Script(`scripts/backup.bat ${backupDir}`)]
+
+-> [Script(`node -e "if (process.argv[1] === 'true') { setTimeout(() => {}, 8000) } console.log('备份流程结束')" ${slow}`)]
+
+[End]

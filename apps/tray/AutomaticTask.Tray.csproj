@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWindowsForms>true</UseWindowsForms>
+    <RootNamespace>AutomaticTask.Tray</RootNamespace>
+    <AssemblyName>Autotask</AssemblyName>
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>true</SelfContained>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <PublishTrimmed>false</PublishTrimmed>
+    <ApplicationIcon>..\..\icons\autotask.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- 只内嵌一个 payload：at.exe 同时承载 CLI 与 runtime 守护进程
+         （后者经由隐藏的 runtime-daemon 开关）。由 EmbeddedPayload 首次运行
+         时释放；scripts/package.mjs 生成并在之后删除。条件让项目
+         在间隙期仍可加载（且 IDE 可构建）；下方 RequireEmbeddedPayload
+         令发布构建缺失时响亮失败，而不是发布一个空壳。 -->
+    <EmbeddedResource Include="embedded\at.exe" LogicalName="at.exe" Condition="Exists('embedded\at.exe')" />
+  </ItemGroup>
+
+  <Target Name="VerifyEmbeddedPayload" BeforeTargets="BeforeBuild" Condition="'$(RequireEmbeddedPayload)' == 'true'">
+    <Error Condition="!Exists('embedded\at.exe')"
+           Text="apps/tray/embedded/at.exe is missing. Run scripts/package.mjs (pnpm package) rather than publishing this project directly." />
+  </Target>
+
+</Project>

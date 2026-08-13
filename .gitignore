@@ -1,0 +1,13 @@
+node_modules/
+dist/
+coverage/
+*.log
+.DS_Store
+.tmp/
+tmp/
+apps/tray/embedded/
+**/bin/
+**/obj/
+
+# 示例任务包为构建产物，用 node examples/build-packages.mjs 重建
+examples/task-packages/*.atp

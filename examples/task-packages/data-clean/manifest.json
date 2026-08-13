@@ -1,0 +1,8 @@
+{
+    "spec": "atp/v1",
+    "id": "data-clean",
+    "name": "Data Cleanup",
+    "version": "1.0.0",
+    "description": "数据校验、清洗、Docker 聚合、失败恢复（最复杂示例）",
+    "author": "Automatic-Task Examples"
+}

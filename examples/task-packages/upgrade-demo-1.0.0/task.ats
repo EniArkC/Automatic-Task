@@ -1,0 +1,8 @@
+# 版本 1.0.0：基础版
+@var greeting: string = "v1"
+
+[Start]
+
+-> [Script(`node -e "console.log('版本 ' + process.argv[1] + ' 运行')" ${greeting}`)]
+
+[End]

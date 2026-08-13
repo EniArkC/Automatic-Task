@@ -1,0 +1,22 @@
+# 定时调用 Agent 发送消息并获取回复
+# 用法：安装后设置 cron 即可定时触发，例如每 30 分钟一次：
+#   autotask install agent-test.atp --yes
+#   autotask task enable agent-test
+#   autotask task schedule agent-test "*/30 * * * *"
+#   autotask run agent-test   # 手动测试一次
+@var message: string = "你好，请用一句话介绍你自己"     # 发给 Agent 的消息
+@var timeout: number = 120                              # Agent 调用超时秒数
+
+[Start]
+
+-> [Agent(`${message}`, timeout: ${timeout})]
+
+-> [Select]
+
+    -> [Success]
+        -> [Script(`node -e "console.log('>>> Agent 回复成功，内容见上方 stdout')"`)]
+
+    -> [Failure]
+        -> [Script(`node -e "console.error('>>> Agent 调用失败，请检查 Agent 配置和网络连接')"`)]
+
+[End]

@@ -1,0 +1,21 @@
+# 超时与重试：步骤超时被终止后，Failure 分支接管执行重试逻辑
+# 覆盖：number / boolean 变量、timeout 参数、比较运算、Failure 恢复分支
+@var maxRetries: number = 2
+@var simulateTimeout: boolean = false
+
+[Start]
+
+-> [Script(`node -e "if (process.argv[1] === 'true') { setInterval(() => {}, 1000) } else { console.log('fast path') }" ${simulateTimeout}`, timeout: 5)]
+
+-> [Select]
+
+    -> [Failure]
+        -> [Script(`node -e "console.log('检测到超时，执行重试逻辑，最多 ' + process.argv[1] + ' 次')" ${maxRetries}`)]
+
+    -> [Success]
+        -> [Script(`node -e "console.log('任务快速完成')"`)]
+
+    -> [Default]
+        -> [Script(`node -e "console.log('默认分支不应到达')"`)]
+
+[End]

@@ -1,0 +1,39 @@
+# 数据清理任务：校验 → 清洗 → Docker 聚合 → 报告
+# 覆盖：path / boolean / number 变量、连续多步骤、步骤失败、
+#       Failure 恢复分支、两次 Select、Case 逻辑运算（&&）、
+#       Docker 步骤（timeout）、变量覆盖运行
+@var dataDir: path = "data"
+@var aggressive: boolean = false
+@var retries: number = 2
+
+[Start]
+
+-> [Script(`node -e "console.log('检查数据目录: ' + process.argv[1])" ${dataDir}`)]
+
+-> [Script(`node -e "if (process.argv[1] !== 'ok') { console.error('数据校验失败: 缺少关键列'); process.exit(3) } console.log('数据校验通过')" ok`)]
+
+-> [Script(`node -e "console.log('开始清洗数据 aggressive=' + process.argv[1])" ${aggressive}`)]
+
+-> [Select]
+
+    -> [Failure]
+        -> [Script(`node -e "console.log('进入失败恢复分支')"`)]
+        -> [Script(`node -e "console.log('按 ' + process.argv[1] + ' 次重试重新清洗')" ${retries}`)]
+
+    -> [Default]
+        -> [Script(`node -e "console.log('数据清洗完成')"`)]
+
+-> [Docker(`alpine`, `echo docker-aggregate-ok`, timeout: 60)]
+
+-> [Select]
+
+    -> [Failure]
+        -> [Script(`node -e "console.log('Docker 聚合失败，改用脚本兜底')"`)]
+
+    -> [Case(${aggressive} == true && ${retries} >= 2)]
+        -> [Script(`node -e "console.log('深度聚合模式：全量重算')"`)]
+
+    -> [Default]
+        -> [Script(`node -e "console.log('标准聚合模式：增量计算')"`)]
+
+[End]

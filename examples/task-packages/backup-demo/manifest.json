@@ -1,0 +1,8 @@
+{
+  "spec": "atp/v1",
+  "id": "backup-demo",
+  "name": "Backup Demo",
+  "version": "1.0.0",
+  "description": "包内 .bat 脚本、path 变量、workspace 输出文件、长任务（供 overlap 测试）",
+  "author": "Automatic-Task Examples"
+}
