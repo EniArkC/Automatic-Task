@@ -84,10 +84,11 @@ export class Parser {
             this.Advance();
             defaultValue = this.ParseLiteral();
         }
-        // 声明行尾的注释就是这个参数的说明。词法层只在行中产出 Comment（整行注释到不了这里），
-        // 所以「紧跟在声明之后」等价于「与 @var 同一行」。空注释（`#` 后无字符）不算说明。
+        // 声明行尾的 `#` 就是这个参数的说明。词法层只在行中产出 Description（整行 `#`
+        // 到不了这里，会在 HandleLineStart 报错），所以「紧跟在声明之后」等价于「与 @var
+        // 同一行」。空说明（`#` 后无字符）不算说明。
         let description: string | undefined;
-        if (this.Peek().Type === ETokenType.Comment) {
+        if (this.Peek().Type === ETokenType.Description) {
             const text = this.Advance().Value;
             description = text === '' ? undefined : text;
         }
@@ -243,8 +244,7 @@ export class Parser {
     }
 
     private ParseSelectBody(line: number, column: number): TSelectNode {
-        this.Expect(ETokenType.Newline, `Expected a newline after [Select]`);
-        this.SkipNewlines();
+        this.SkipSeparators();
         this.Expect(ETokenType.Indent, 'Expected indented branches after [Select]');
         const branches: TSelectBranch[] = [];
         while (this.Peek().Type === ETokenType.Arrow) {
@@ -287,8 +287,7 @@ export class Parser {
             this.Expect(ETokenType.Rparen, 'Expected ) to close the Case condition');
         }
         this.Expect(ETokenType.Rbracket, 'Expected ] after the branch type');
-        this.Expect(ETokenType.Newline, 'Expected a newline after the branch header');
-        this.SkipNewlines();
+        this.SkipSeparators();
         this.Expect(ETokenType.Indent, 'Expected indented steps inside the branch');
         const body = this.ParseChain();
         if (body.length === 0) {
@@ -411,12 +410,6 @@ export class Parser {
             } else {
                 return;
             }
-        }
-    }
-
-    private SkipNewlines(): void {
-        while (this.Peek().Type === ETokenType.Newline) {
-            this.Advance();
         }
     }
 

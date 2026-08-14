@@ -171,7 +171,7 @@ describe('parser', () => {
     it('takes the trailing comment of a declaration as its description', () => {
         const ast = parse(
             [
-                '# 独立成行的注释不是说明',
+                '// 独立成行的注释不是说明',
                 '@var city: string = "北京"   # 要生成日报的城市',
                 '@var token: password!  #  抓取接口的访问令牌  ',
                 '@var lines: number = 5',
@@ -190,7 +190,7 @@ describe('parser', () => {
     });
 
     it('does not take a comment on the previous line as a description', () => {
-        const ast = parse('# 这行只是注释\n@var city: string\n[Start]\n[End]\n');
+        const ast = parse('// 这行只是注释\n@var city: string\n[Start]\n[End]\n');
         expect(ast.Variables[0]?.Description).toBeUndefined();
     });
 

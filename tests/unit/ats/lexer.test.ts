@@ -103,19 +103,19 @@ describe('lexer', () => {
     });
 
     it('skips comments and blank lines without changing indentation', () => {
-        const tokens = tokenize('# a comment\n\n-> [Script(`x`)]  # trailing\n');
+        const tokens = tokenize('// a comment\n\n-> [Script(`x`)]  // trailing\n');
         expect(tokens.some((token) => token.Type === ETokenType.Comment)).toBe(true);
         expect(tokens.filter((token) => token.Type === ETokenType.Indent)).toHaveLength(0);
     });
 
-    it('keeps the text of a trailing comment', () => {
+    it('keeps the text of a trailing description', () => {
         const tokens = tokenize('@var city: string   # 要生成日报的城市\r\n');
-        const comment = tokens.find((token) => token.Type === ETokenType.Comment);
-        expect(comment?.Value).toBe('要生成日报的城市');
+        const description = tokens.find((token) => token.Type === ETokenType.Description);
+        expect(description?.Value).toBe('要生成日报的城市');
     });
 
     it('does not emit a token for a whole-line comment', () => {
-        const tokens = tokenize('# 整行注释\n-> [Script(`x`)]\n');
+        const tokens = tokenize('// 整行注释\n-> [Script(`x`)]\n');
         expect(tokens.some((token) => token.Type === ETokenType.Comment)).toBe(false);
     });
 

@@ -61,13 +61,18 @@ export class Lexer {
         const rest = this.Peek();
         const restAfter = this.Peek(1);
         const isBlank = rest === '\n' || (rest === '\r' && restAfter === '\n') || rest === '';
-        const isComment = rest === '#';
+        const isComment = rest === '/' && restAfter === '/';
+        const isHash = rest === '#';
         if (isBlank || isComment) {
             // 空行和纯注释行不改变缩进层级。
             this.Position = indentStart;
             this.Column = 1;
             this.ScanLineEnd();
             return;
+        }
+        if (isHash) {
+            // `#` 只允许作为 @var 行尾的参数说明，独立成行的 `#` 注释已废弃。
+            this.Fail(`'#' is only allowed as the trailing description on an @var line`, `Use '//' for comments`);
         }
         const top = this.IndentStack[this.IndentStack.length - 1] ?? 0;
         this.AtLineStart = false;
@@ -99,8 +104,16 @@ export class Lexer {
             this.Advance();
             return;
         }
+        if (char === '/') {
+            if (this.Peek(1) === '/') {
+                this.ScanComment();
+            } else {
+                this.Fail(`Unexpected '/'`, `Use '//' for comments`);
+            }
+            return;
+        }
         if (char === '#') {
-            this.ScanComment();
+            this.ScanDescription();
             return;
         }
         if (char === '"') {
@@ -370,11 +383,11 @@ export class Lexer {
         this.Emit(ETokenType.Template, this.Source.slice(start, this.Position), startColumn);
     }
 
-    // 注释文本要保留：`@var` 行尾的注释就是该参数的说明（TUI 配置界面直接显示）。
-    // 整行注释在 HandleLineStart 就被吞掉，不产生 Comment 词法单元，所以
-    // 「说明必须与 @var 同一行」由词法层保证，parser 无需再判断。
+    // `//` 行尾注释。整行 `//` 注释在 HandleLineStart 就被吞掉，这里的都是行中注释，
+    // parser 用 SkipSeparators 跳过，永远不会成为 @var 的参数说明。
     private ScanComment(): void {
-        // 跳过 '#'，文本从它之后开始。
+        // 跳过两个 '/'，文本从它们之后开始。
+        this.Advance();
         this.Advance();
         const start = this.Position;
         while (this.Position < this.Source.length && this.Peek() !== '\n') {
@@ -382,6 +395,18 @@ export class Lexer {
         }
         // 剔除 CRLF 的 '\r'。
         this.Emit(ETokenType.Comment, this.Source.slice(start, this.Position).replace(/\r$/, '').trim());
+    }
+
+    // `#` 只作为 @var 行尾的参数说明出现（TUI 配置界面直接显示）。
+    // 独立成行的 `#` 在 HandleLineStart 已被拦截报错，所以能到这里的
+    // `#` 必然位于行中；parser 只在紧跟 @var 声明处消费 Description。
+    private ScanDescription(): void {
+        this.Advance();
+        const start = this.Position;
+        while (this.Position < this.Source.length && this.Peek() !== '\n') {
+            this.Advance();
+        }
+        this.Emit(ETokenType.Description, this.Source.slice(start, this.Position).replace(/\r$/, '').trim());
     }
 
     private ScanLineEnd(): void {

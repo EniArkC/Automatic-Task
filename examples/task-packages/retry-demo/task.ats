@@ -1,5 +1,5 @@
-# 超时与重试：步骤超时被终止后，Failure 分支接管执行重试逻辑
-# 覆盖：number / boolean 变量、timeout 参数、比较运算、Failure 恢复分支
+// 超时与重试：步骤超时被终止后，Failure 分支接管执行重试逻辑
+// 覆盖：number / boolean 变量、timeout 参数、比较运算、Failure 恢复分支
 @var maxRetries: number = 2
 @var simulateTimeout: boolean = false
 

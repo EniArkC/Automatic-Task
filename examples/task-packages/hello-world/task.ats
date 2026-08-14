@@ -1,4 +1,4 @@
-# 最简单的任务：变量 + 单个 Script 步骤
+// 最简单的任务：变量 + 单个 Script 步骤
 @var greeting: string = "你好"
 
 [Start]

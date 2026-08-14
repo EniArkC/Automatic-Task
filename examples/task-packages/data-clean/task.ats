@@ -1,7 +1,7 @@
-# 数据清理任务：校验 → 清洗 → Docker 聚合 → 报告
-# 覆盖：path / boolean / number 变量、连续多步骤、步骤失败、
-#       Failure 恢复分支、两次 Select、Case 逻辑运算（&&）、
-#       Docker 步骤（timeout）、变量覆盖运行
+// 数据清理任务：校验 → 清洗 → Docker 聚合 → 报告
+// 覆盖：path / boolean / number 变量、连续多步骤、步骤失败、
+//       Failure 恢复分支、两次 Select、Case 逻辑运算（&&）、
+//       Docker 步骤（timeout）、变量覆盖运行
 @var dataDir: path = "data"
 @var aggressive: boolean = false
 @var retries: number = 2

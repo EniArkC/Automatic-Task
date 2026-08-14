@@ -31,6 +31,7 @@
     Default = 'DEFAULT',
     Case = 'CASE',
     Comment = 'COMMENT',
+    Description = 'DESCRIPTION',
     Newline = 'NEWLINE',
     Indent = 'INDENT',
     Dedent = 'DEDENT',

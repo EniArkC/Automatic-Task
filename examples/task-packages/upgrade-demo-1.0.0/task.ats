@@ -1,4 +1,4 @@
-# 版本 1.0.0：基础版
+// 版本 1.0.0：基础版
 @var greeting: string = "v1"
 
 [Start]

@@ -1,6 +1,6 @@
-# 日报任务：脚本抓取 → Agent 生成 → 按 depth 分支
-# 覆盖：string / select / password / number 变量、包内脚本、Agent、
-#       Select + Case + Default、模板多变量、密码脱敏
+// 日报任务：脚本抓取 → Agent 生成 → 按 depth 分支
+// 覆盖：string / select / password / number 变量、包内脚本、Agent、
+//       Select + Case + Default、模板多变量、密码脱敏
 @var city: string = "北京"                      # 要生成日报的城市
 @var depth: select("简版", "详细") = "简版"      # 日报详细程度
 @var token: password!                           # 抓取接口的访问令牌
