@@ -96,6 +96,9 @@ export function padCells(text: string, width: number): string {
 
 // 把 `text` 拆成最多 `maxLines` 行、每行最多 `width` 格，按字符而不是按词断行：
 // 通知大多是路径和运行时错误串，常常没有词可断。
+// `\n`/`\r` 是硬换行（AtParseError 的 message 用 `\n` 拼接多行），必须当行分隔符处理：
+// 否则它们会被 ink 的 <Text> 渲染成真实换行，撑破定高的 overlay 盒子，且 padCells 补的空格
+// 落在最后一个换行之后，换行前的行没补满就露出底层内容（toast 盖不住后面页面）。
 export function wrapCells(text: string, width: number, maxLines: number): string[] {
     if (width <= 0 || maxLines <= 0) {
         return [];
@@ -104,6 +107,16 @@ export function wrapCells(text: string, width: number, maxLines: number): string
     let current = '';
     let used = 0;
     for (const char of text) {
+        if (char === '\n' || char === '\r') {
+            if (lines.length + 1 === maxLines) {
+                lines.push(truncateCells(current, width));
+                return lines;
+            }
+            lines.push(current);
+            current = '';
+            used = 0;
+            continue;
+        }
         const size = isWideCodePoint(char.codePointAt(0) ?? 0) ? 2 : 1;
         if (used + size > width) {
             if (lines.length + 1 === maxLines) {

@@ -16,7 +16,7 @@ import {
     runRowColumns,
     taskRowColumns,
 } from '../../../src/tui/layout';
-import { displayWidth, layout, padCells, truncateCells } from '../../../src/tui/theme';
+import { displayWidth, layout, padCells, truncateCells, wrapCells } from '../../../src/tui/theme';
 
 // The whole interface is built on one promise: every line is exactly the frame
 // width, whatever the terminal size. ink makes that easy to break -- it deletes
@@ -249,6 +249,16 @@ describe('cell helpers', () => {
         expect(truncateCells('中文任务名称', 5)).toBe('中文…');
         expect(displayWidth(truncateCells('中文任务名称', 5))).toBeLessThanOrEqual(5);
         expect(truncateCells('abc', 10)).toBe('abc');
+    });
+
+    it('treats newlines as hard line breaks so a multi-line message never leaks a bare \\n', () => {
+        // AtParseError 的 message 是 `\n` 拼接的多行文本；若 wrapCells 把 `\n` 当普通
+        // 字符计数，ink 的 <Text> 会把它渲染成真实换行，撑破 toast/confirm 的定高盒子。
+        expect(wrapCells('task.ats:14:1\n# 旧的注释\n^', 20, 3)).toEqual(['task.ats:14:1', '# 旧的注释', '^']);
+        // 任何一行都不该再含换行符，否则下游 padCells 会算错宽度。
+        for (const line of wrapCells('a\nb\nc\nd', 8, 3)) {
+            expect(line).not.toContain('\n');
+        }
     });
 
     it('reserves the border and both gutters of a box', () => {
